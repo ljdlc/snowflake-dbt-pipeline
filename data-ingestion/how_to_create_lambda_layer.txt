@@ -1,0 +1,26 @@
+# create layer directory
+mkdir -p lambda_layers/python/lib/python3.10/site-packages
+
+# create virtual environment 
+python3 -m venv venv
+source venv/bin/activate
+
+# install the dependencies in the desired folder using the requirements.txt file
+pip3 install -r requirements.txt -t lambda_layers/python/lib/python3.10/site-packages/.
+
+# to install snowflake-connector-python package we are not using requirements.txt file. The pip3 install command is also using multiple flags. This is because lambda backend containers are using older packages which makes it difficult to install it using other methods.
+# Refer to this link for more info: (https://stackoverflow.com/questions/75472308/aws-lambda-returns-lib64-libc-so-6-version-glibc-2-28-not-found) 
+pip3 install --platform manylinux2010_x86_64 --implementation cp --python 3.10 --only-binary=:all: --upgrade --target lambda_layers/python/lib/python3.10/site-packages snowflake-connector-python==2.7.9
+
+# zip the lambda_layers folder
+cd lambda_layers
+zip -r snowflake_lambda_layer.zip *
+
+# publish layer directly to lambda
+aws lambda publish-layer-version \
+    --layer-name snowflake-lambda-layer \
+    --compatible-runtimes python3.10 \
+    --zip-file fileb://snowflake_lambda_layer.zip
+
+# OR copy to S3 and create layer through aws console:
+aws s3 cp snowflake_lambda_layer.zip s3://lambda-layer-bucket
