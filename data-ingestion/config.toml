@@ -1,5 +1,5 @@
 [s3]
-# URL of the target csv file to be uploaded
+# URL of the target csv file to be uploaded:
 s3_url="https://de-materials-tpcds.s3.ca-central-1.amazonaws.com/inventory.csv"
 
 [download]
@@ -11,7 +11,7 @@ filename = "inventory.csv"
 [snowflake]
 # snowflake database that the file will be uploaded to:
 warehouse = 'TPCDS'
-database = 'TPCDS'
+database = 'TPCDS2'
 schema = 'raw'
 role = 'accountadmin'
 file_format = 'comma_csv'
