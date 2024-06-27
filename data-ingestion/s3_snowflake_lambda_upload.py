@@ -1,9 +1,9 @@
 import json
 import toml
-import requests
 import os
 import snowflake.connector as sf
 from dotenv import load_dotenv
+import boto3
 
 def lambda_handler(event, context):
  
@@ -18,7 +18,7 @@ def lambda_handler(event, context):
     
     # set destination folder and filename to download the file to lambda ephemoral storage
     destination_folder = app_config['download']['destination_folder']
-    filename = app_config['download']['filename']
+    file_name = app_config['download']['file_name']
     
     # set snowflake configuration variables
     
@@ -41,24 +41,29 @@ def lambda_handler(event, context):
     stage_name = app_config['snowflake']['stage_name']
     table = app_config['snowflake']['table']
 
-    # save url request response into the 'response' variable
-    response = requests.get(s3_url)
-    # return HTTPError if error occurs during request
-    response.raise_for_status()
+    # Set AWS authentication variables from .env file to download .csv file from S3
+    # AWS_ID, AWS_KEY
+    aws_id = os.getenv('AWS_ID')
+    aws_key = os.getenv('AWS_KEY') 
     
+    # Create boto3 client connection using AWS access key and secret access key credentials
+    client = boto3.client(
+        's3',
+        aws_access_key_id=aws_id,
+        aws_secret_access_key=aws_key
+        )
+
     # set download filepath and filename into lambda ephemoral storage folder using destination_folder and filename in config.toml file
-    file_path = os.path.join(destination_folder, filename)
+    file_path = os.path.join(destination_folder, file_name)
     
-    # open file and write response content to the file
-    with open(file_path, 'wb') as f:
-        f.write(response.content)
+    # Use boto3 to download the file from the S3. Bucket is configured as "requester pays"
+    client.download_file(Bucket='de-materials-tpcds', Key=file_name, Filename=file_path, ExtraArgs={'RequestPayer': 'requester'})
     
-    # open file and set file contents to file_content variable. Print file_contents to check if the file has been written correctly.    
-    with open(file_path, 'r') as f:
-        file_content = f.read()
-        print(file_content)
-    
-    
+    # print first 10 lines of file to confirm file is downloaded correctly   
+    with open(file_path) as f:
+        head = [next(f) for line in range(10)]
+        print(head)
+        
     # connect to snowflake with snowflake user account info and database configuration saved in .env and config.toml.
     conn = sf.connect(user = user, password = password, \
                  account = account, warehouse=warehouse, \
@@ -97,7 +102,7 @@ def lambda_handler(event, context):
     cursor.execute(truncate_table)
     
     # copy data from file in staging area into schema.table configured in config.toml file. 
-    copy_into_table = f"COPY INTO {schema}.{table} FROM @{stage_name}/{filename} FILE_FORMAT={file_format} ON_ERROR='CONTINUE';"
+    copy_into_table = f"COPY INTO {schema}.{table} FROM @{stage_name}/{file_name} FILE_FORMAT={file_format} ON_ERROR='CONTINUE';"
     cursor.execute(copy_into_table)
  
     print('File uploaded to Snowflake successfully')
