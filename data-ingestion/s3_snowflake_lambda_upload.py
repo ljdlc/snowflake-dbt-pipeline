@@ -100,6 +100,7 @@ def lambda_handler(event, context):
     cursor.execute(truncate_table)
     
     # copy data from file in staging area into schema.table configured in config.toml file. 
+    # ON_ERROR='CONTINUE' is used because the hosted dataset has null values for non-nullable columns. 
     copy_into_table = f"COPY INTO {schema}.{table} FROM @{stage_name}/{file_name} FILE_FORMAT={file_format} ON_ERROR='CONTINUE';"
     cursor.execute(copy_into_table)
  
