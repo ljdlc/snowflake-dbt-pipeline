@@ -22,15 +22,13 @@ def lambda_handler(event, context):
     
     # set snowflake configuration variables
     
-    # set snowflake username, password, and account identifier information as variables from .env file
-    # .env file should be in this format:
-    # user = ''
-    # password = ''
-    # account = 'XXXXXXX-XXXXXXX'
+    # Set snowflake username, password, and account identifier information as variables from .env file
+    # variables: SNOWFLAKE_USERNAME, SNOWFLAKE_PASSWORD, SNOWFLAKE_ACCOUNT
+    # SNOWFLAKE_ACCOUNT is written in this format: "XXXXXXX-XXXXXX"
 
-    user = os.getenv('user')
-    password = os.getenv('password')
-    account = os.getenv('account')
+    user = os.getenv('SNOWFLAKE_USERNAME')
+    password = os.getenv('SNOWFLAKE_PASSWORD')
+    account = os.getenv('SNOWFLAKE_ACCOUNT')
 
     # set snowflake database connection variables from 'app_config' variable created from .toml file.
     warehouse = app_config['snowflake']['warehouse']
