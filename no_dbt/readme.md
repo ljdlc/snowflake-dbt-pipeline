@@ -1,1 +1,0 @@
-This folder contains DDL and DML scripts for data modelling without the use of dbt to illustrate the advantages that dbt provides when data modelling.
