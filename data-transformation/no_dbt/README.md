@@ -1,0 +1,1 @@
+This directory contains DML and DDL for data modelling without the use of dbt to illustrate the advantage of using dbt when data modelling.
