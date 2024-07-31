@@ -1,0 +1,54 @@
+Project Business Requirements:
+
+1.
+sum_qty_wk: the sum sales_quantity of this week
+SQL translation:
+sum(catalog_sales.vs_quantity)
+group by date_dim.week_num and item
+AND
+sum(web_sales.ws_quantity) group by date_dim.week_num and item
+
+2.
+sum_amt_wk: the sum sales_amount of this week
+SQL translation:
+sum(catalog_sales.cs_sales_price * catalog_sales.vs_quantity) group by date_dim.week_num and item
+AND
+sum(web_sales.ws_sales_price * web_sales.vs_quantity) group by date_dim.week_num and item
+
+3.
+sum_profit_wk: the sum net_profit of this week
+SQL translation:
+sum(catalog_sales.cs_net_profit) group by date_dim.week_num and item
+AND
+sum(web_sales.ws_net_profit) group by date_dim.week_num and item
+
+4.
+avg_qty_dy: the average daily sales_quantity of this week
+SQL translation:
+sum_qty_wk/7
+
+5.
+inv_on_hand_qty_wk: the item’s inventory on hand at the end of each week in all warehouses (The inventory on hand of this weekend)
+SQL translation:
+inventory.inv_quantity_on_hand group by date_dim.week_num, warehouse
+
+6.
+wks_sply: Weeks of supply, an estimate metrics to see how many weeks the inventory can supply the sales 
+SQL translation:
+inv_on_hand_qty_wk/sum_qty_wk
+
+7.
+low_stock_flg_wk: Low stock weekly flag. During the week, if there is a single day where 
+daily average sales is greater than 0, and daily average sales is greater than weekly inventory, then flag is True
+SQL translation:
+(avg_qty_dy > 0) && (avg_qty_dy > inventory_on_hand_qty_wk)
+
+8.
+Create customer dimension. Create one big table as customer dimension with SCD as type 2 (add "Valid from", "Valid to" columns)
+
+------------------------
+Data Model:
+- Fact table: Weekly sales inventory
+- Dimensions: week_num, item, warehouse
+- Facts: sum_qty_wk, sum_amt_wk, sum_profit_wk, avg_qty_dy, inv_on_hand_qty_wk, wks_sply, low_stock_flg_wk
+- Based on business requirements minimum grain is weekly data for each item
