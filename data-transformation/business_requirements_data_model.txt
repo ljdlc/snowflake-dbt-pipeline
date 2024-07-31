@@ -46,7 +46,7 @@ SQL translation:
 8.
 Create customer dimension. Create one big table as customer dimension with SCD as type 2 (add "Valid from", "Valid to" columns)
 
-------------------------
+---------------------------
 Data Model:
 - Fact table: Weekly sales inventory
 - Dimensions: week_num, item, warehouse
