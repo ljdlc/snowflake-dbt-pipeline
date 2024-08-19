@@ -4,6 +4,7 @@ SET LAST_SOLD_DATE_SK = (SELECT MAX(SOLD_DATE_SK) FROM SF_TPCDS2.INTERMEDIATE.DA
 -- Remove partial records from the last date
 DELETE FROM SF_TPCDS2.INTERMEDIATE.DAILY_AGGREGATED_SALES WHERE SOLD_DATE_SK = $LAST_SOLD_DATE_SK;
 
+-- Create temporary daily aggregated sales table to transform the data to be properly inserted into the final daily aggregated sales table
 CREATE OR REPLACE TRANSIENT TABLE SF_TPCDS2.INTERMEDIATE.DAILY_AGGREGATED_SALES_TMP AS (
 
 WITH INCREMENTAL_SALES AS (
@@ -76,3 +77,28 @@ WITH INCREMENTAL_SALES AS (
         GROUP BY 1, 2, 3
         ORDER BY 1, 2, 3
 );
+
+-- Insert transformed values from temporary daily aggegregated sales table into the non-temporary daily aggregated sales table
+
+INSERT INTO INTERMEDIATE.DAILY_AGGREGATED_SALES
+(
+    WAREHOUSE_SK,
+    ITEM_SK,
+    SOLD_DATE_SK,
+    SOLD_WK_NUM,
+    SOLD_YR_NUM,
+    DAILY_QTY,
+    DAILY_SALES_AMT,
+    DAILY_PROFIT
+)
+SELECT 
+    DISTINCT
+    WAREHOUSE_SK,
+    ITEM_SK,
+    SOLD_DATE_SK,
+    SOLD_WK_NUM,
+    SOLD_YR_NUM,
+    DAILY_QTY,
+    DAILY_SALES_AMT,
+    DAILY_PROFIT
+FROM INTERMEDIATE.DAILY_AGGREGATED_SALES_TMP;
