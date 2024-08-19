@@ -80,7 +80,7 @@ WITH INCREMENTAL_SALES AS (
 
 -- Insert transformed values from temporary daily aggegregated sales table into the non-temporary daily aggregated sales table
 
-INSERT INTO INTERMEDIATE.DAILY_AGGREGATED_SALES
+INSERT INTO SF_TPCDS2.INTERMEDIATE.DAILY_AGGREGATED_SALES
 (
     WAREHOUSE_SK,
     ITEM_SK,
